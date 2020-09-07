@@ -267,7 +267,10 @@ func (h *Handle) GetPartitionStats(tblInfo *model.TableInfo, pid int64) *statist
 	statsCache := h.statsCache.Load().(statsCache)
 	tbl, ok := statsCache.tables[pid]
 	if !ok {
-		tbl = statistics.PseudoTable(tblInfo)
+		tbl, err := h.tableStatsFromStorage(tblInfo, pid, false, nil)
+		if err != nil {
+			tbl = statistics.PseudoTable(tblInfo)
+		}
 		tbl.PhysicalID = pid
 		h.updateStatsCache(statsCache.update([]*statistics.Table{tbl}, nil, statsCache.version))
 		return tbl
